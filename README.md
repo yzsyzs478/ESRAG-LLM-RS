@@ -198,7 +198,7 @@ All evaluation scripts are located in the 'metric/' directory.
 
 1. **Extract and clean recommended items**
    '''bash
-   python metric/extract_filter.py --input outputs/esrag_llm_movie.jsonl
+   python metric/extract_filter.py --input outputs/llm_esrag.jsonl
    '''
    - Parses the LLM’s raw outputs  
    - Extracts recommended titles  
@@ -227,7 +227,7 @@ This protocol evaluates recommendation quality solely based on **ground-truth us
 (*Critic Rating + Real Rating for LLM-generated recommendations*)
 1. **Extract & clean recommended titles:**
    ```bash
-   python metric/extract_filter.py --input outputs/esrag_llm_movie.jsonl
+   python metric/extract_filter.py --input outputs/llm_esrag.jsonl
    ```
 
 2. **Predict scores with Recommendation Critic:**
