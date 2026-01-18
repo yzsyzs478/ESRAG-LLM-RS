@@ -194,6 +194,7 @@ All evaluation scripts are located in the 'metric/' directory.
 **In our code, we adopt Option A (Real Rating–Only) as the primary evaluation protocol.**
 
 #### Option A: Real Rating–Only (Primary Setting)
+(*From candidate item list to recommendation*)
 
 1. **Extract and clean recommended items**
    '''bash
@@ -221,6 +222,9 @@ All evaluation scripts are located in the 'metric/' directory.
 
 This protocol evaluates recommendation quality solely based on **ground-truth user ratings**, without involving auxiliary scoring models.
 
+
+#### Option B: Critic + Real  
+(*Critic Rating + Real Rating for LLM-generated recommendations*)
 1. **Extract & clean recommended titles:**
    ```bash
    python metric/extract_filter.py --input outputs/esrag_llm_movie.jsonl
