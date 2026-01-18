@@ -8,14 +8,14 @@ from typing import Any, Dict, List, Optional
 # =========================
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Filter recommendations by exact title match and attach ratings from validation_set/recommendation_subset."
+        description="Filter recommendations by exact title match and attach ratings from validation_set only."
     )
 
     parser.add_argument(
         "--input_path",
         type=str,
         default="llm_esrag_1.json",
-        help="Path to the input JSON file containing users, recommendations, validation_set, and recommendation_subset."
+        help="Path to the input JSON file containing users, recommendations, validation_set."
     )
     parser.add_argument(
         "--output_path",
@@ -28,12 +28,6 @@ def parse_args():
         type=str,
         default="recommendations",
         help="Key in each user entry that stores the recommendation list."
-    )
-    parser.add_argument(
-        "--subset_key",
-        type=str,
-        default="recommendation_subset",
-        help="Key in each user entry that stores the recommendation subset list."
     )
     parser.add_argument(
         "--validation_key",
@@ -104,7 +98,7 @@ def add_ratings_and_filter(
 
         key = norm(title)
 
-        # Exact match lookup in the merged rating dictionary
+        # Exact match lookup in the validation set ratings dictionary
         if key in combined_ratings:
             new_idx += 1
             rating = combined_ratings[key]
@@ -116,7 +110,7 @@ def add_ratings_and_filter(
 def main():
     args = parse_args()
 
-    # Read input JSON
+    # Read input JSON file
     with open(args.input_path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
@@ -125,26 +119,18 @@ def main():
     for user in data:
         user_id = user.get(args.user_id_key)
         recommendations = user.get(args.rec_key, []) or []
-        recommendation_subset = user.get(args.subset_key, []) or []
 
-        # Build rating maps using normalized titles as keys
+        # Only create rating map from validation_set
         validation_map = {
             norm(item.get("title", "")): item.get("rating", None)
             for item in (user.get(args.validation_key, []) or [])
             if isinstance(item, dict) and item.get("title")
         }
-        subset_map = {
-            norm(item.get("title", "")): item.get("rating", None)
-            for item in recommendation_subset
-            if isinstance(item, dict) and item.get("title")
-        }
 
-        # Merge dictionaries; validation_map takes priority (overrides subset_map)
-        combined_ratings = {**subset_map, **validation_map}
-
+        # Use validation set ratings for matching
         rated_recommendations = add_ratings_and_filter(
             recommendations=recommendations,
-            combined_ratings=combined_ratings,
+            combined_ratings=validation_map,  # Use only validation set for matching
             list_prefix_sep=args.list_prefix_sep,
             title_rating_sep=args.title_rating_sep,
         )
@@ -152,11 +138,10 @@ def main():
         output_data.append({
             args.user_id_key: user_id,
             args.rec_key: rated_recommendations,
-            args.subset_key: recommendation_subset,
             args.validation_key: user.get(args.validation_key, []),
         })
 
-    # Write output JSON
+    # Write output JSON file
     with open(args.output_path, "w", encoding="utf-8") as f:
         json.dump(output_data, f, ensure_ascii=False, indent=4)
 
